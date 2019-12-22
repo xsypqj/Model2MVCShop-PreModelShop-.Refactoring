@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PurchaseMapper">
+ 	
+ 	
+	<resultMap id="purchaseSelectMap" type="purchase">
+		<result property="tranNo" 					column="tran_no" 			jdbcType="NUMERIC"/>
+		<result property="purchaseProd.prodNo"		column="prod_no" 			jdbcType="NUMERIC" />
+		<result property="purchaseProd.prodName"	column="prod_name" 			jdbcType="VARCHAR" />
+		<result property="purchaseProd.price"		column="price" 				jdbcType="NUMERIC" />
+		<result property="purchaseProd.regDate"		column="reg_date" 			jdbcType="DATE" />
+		
+		<result property="buyer.userId"			column="buyer_id" 			jdbcType="VARCHAR" />
+		<result property="paymentOption" 		column="payment_option" 	jdbcType="CHAR" />
+		<result property="receiverName" 		column="receiver_name" 		jdbcType="VARCHAR" />
+		<result property="receiverPhone" 		column="receiver_phone" 	jdbcType="VARCHAR" />
+		<result property="dlvyAddr" 			column="demailaddr" 		jdbcType="VARCHAR" />
+		<result property="dlvyRequest" 			column="dlvy_request" 		jdbcType="VARCHAR"  />
+		<result property="tranCode" 			column="tran_status_code" 	jdbcType="CHAR" />
+		<result property="orderDate" 			column="order_data" 		jdbcType="DATE" />
+		<result property="dlvyDate" 			column="dlvy_date" 			jdbcType="DATE" />
+	</resultMap>
+	<resultMap id="transferMap" type="transfer">
+		<result property="userId" column="USER_ID" jdbcType="VARCHAR"/>
+		<result property="userName" column="USER_NAME" jdbcType="VARCHAR"/>
+		<result property="balance" column="BALANCE" jdbcType="NUMERIC"/>
+	</resultMap>
+	
+	<select id="getPurchase" parameterType="java.lang.Integer" resultMap="purchaseSelectMap">
+		SELECT tran_no,prod_no,buyer_id,payment_option,receiver_name,receiver_phone,demailaddr,dlvy_request,tran_status_code,order_data,dlvy_date
+		FROM TRANSACTION 
+		WHERE tran_no = #{tranNo}
+	</select>
+	
+	<select id="getTotalCount" parameterType="java.lang.String" resultType="int">
+		SELECT COUNT(*)
+		FROM(	SELECT tran_no
+						FROM TRANSACTION	
+						WHERE buyer_id = #{buyerId}
+						)
+	</select>
+	
+	<update id="updatePurchase" parameterType="purchase" >
+		UPDATE TRANSACTION
+		<set>
+			payment_option = #{paymentOption} ,
+			receiver_name = #{receiverName} ,
+			receiver_phone = #{receiverPhone} ,
+			demailaddr = #{dlvyAddr} ,
+			dlvy_request = #{dlvyRequest} ,
+			tran_status_code = #{tranCode} ,
+			order_data = SYSDATE ,
+			dlvy_date = #{dlvyDate}
+		</set>
+		WHERE tran_no = #{tranNo}
+	</update>
+	
+	<update id="updateTranCode" parameterType="purchase" >
+		UPDATE TRANSACTION
+		<set>
+			<if test="tranCode != null and tranCode != '' ">
+				<if test="tranCode == 1">
+					tran_status_code = 2
+				</if>
+				<if test="tranCode == 2">
+					tran_status_code = 3
+				</if>
+			</if>
+		</set>
+		WHERE tran_no = #{tranNo}
+	</update>
+	 
+	 <update id="updateTranCodeByProd" parameterType="purchase" >
+		UPDATE TRANSACTION
+		<set>
+			<if test="tranCode != null and tranCode != '' ">
+				<if test="tranCode == 1">
+					tran_status_code = 2
+				</if>
+				<if test="tranCode == 2">
+					tran_status_code = 3
+				</if>
+			</if>
+		</set>
+		WHERE prod_no = #{purchaseProd.prodNo}
+	</update>
+	 
+	 <select id="getPurchaseList" parameterType="java.util.Map" resultMap="purchaseSelectMap">
+	 	SELECT *
+		FROM (	SELECT ROWNUM no, search_data.*
+						FROM		(	SELECT t.*, p.prod_name, p.price, p.reg_date FROM TRANSACTION t, PRODUCT p
+											<if test="buyerId != null and buyerId != '' ">
+											WHERE buyer_id = #{buyerId} AND t.prod_no = p.prod_no
+											</if>
+											ORDER BY tran_status_code ) search_data
+						WHERE ROWNUM &lt;= #{search.endRowNum} )
+		WHERE no BETWEEN #{search.startRowNum} AND #{search.endRowNum}
+	 </select>
+	 
+	 <insert id="addPurchase" parameterType="purchase" >
+	 	INSERT INTO TRANSACTION 
+	 	VALUES (seq_product_prod_no.nextval, #{purchaseProd.prodNo}, #{buyer.userId}, #{paymentOption},
+	 				#{receiverName}, #{receiverPhone}, #{dlvyAddr}, #{dlvyRequest}, 1, SYSDATE, #{dlvyDate} )
+	 </insert>
+	 
+	 <update id="setFlag" parameterType="int" >
+	 	UPDATE PRODUCT
+	 	SET flag = 1
+	 	WHERE prod_no = #{prodNo}
+	 </update>
+	 
+	 <select id="searchAccount" parameterType="string" resultMap="transferMap">
+	 	SELECT user_id, user_name, balance 
+	 	FROM ACCOUNT
+	 	WHERE user_id = #{userId}
+	 </select>
+	 
+	 <insert id="addAccount" parameterType="transfer">
+	 	INSERT INTO ACCOUNT
+	 	VALUES (#{userId} , #{userName} , 0)
+	 </insert>
+	 
+	 <update id="depositAccount" parameterType="transfer">
+	 	UPDATE ACCOUNT
+	 	SET balance = #{balance}
+	 	WHERE user_id = #{userId}
+	 		AND user_name = #{userName}
+	 </update>
+	 
+	 <update id="withdrawalAccount" parameterType="transfer">
+	 	UPDATE ACCOUNT
+	 	SET balance = #{balance}
+	 	WHERE user_id = #{userId}
+	 		AND user_name = #{userName}
+	 </update>
+	 
+</mapper>
+
+
+
+
+
+
+							
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

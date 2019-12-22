@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ProductMapper">
+ 	
+ 	
+	<resultMap id="productSelectMap" type="product">
+		<result property="prodNo" 		column="prod_no" 				jdbcType="NUMERIC"/>
+		<result property="prodName"		column="prod_name" 			jdbcType="VARCHAR" />
+		<result property="prodDetail" 	column="prod_detail" 			jdbcType="VARCHAR" />
+		<result property="manuDate" 	column="manufacture_day" 	jdbcType="VARCHAR" />
+		<result property="price" 			column="price" 					jdbcType="NUMERIC" />
+		<result property="fileName" 		column="image_file" 			jdbcType="VARCHAR" />
+		<result property="regDate" 		column="reg_date" 			jdbcType="DATE" />
+		<result property="flag" 			column="flag" 					jdbcType="CHAR"  />
+		<result property="tranNo" 		column="tran_no" 				jdbcType="NUMERIC" />
+		<result property="tranCode" 		column="tran_status_code" 	jdbcType="CHAR" />
+	</resultMap>
+	
+	<select id="getProduct" parameterType="java.lang.Integer" resultMap="productSelectMap">
+		SELECT prod_no, prod_name, prod_detail, manufacture_day, price, image_file, reg_date
+		FROM PRODUCT 
+		WHERE prod_no=#{prodNo}
+	</select>
+	
+	<select id="getProductList" parameterType="search" resultMap="productSelectMap">
+		SELECT * 
+		FROM (	SELECT ROWNUM no,search_data.* 
+						FROM 	(	SELECT p.*, t.tran_no, t.tran_status_code 
+											FROM PRODUCT p, TRANSACTION t 
+												<where>
+														p.prod_no=t.prod_no(+)	 
+													<if test="searchCondition == 0 and searchKeyword !='' and searchCondition != null">
+										 				AND p.prod_no LIKE '%${searchKeyword}%' 
+													</if>
+													<if test="searchCondition == 1 and searchKeyword !='' and searchCondition != null">
+										 				AND p.prod_name LIKE '%${searchKeyword}%' 
+													</if>
+													<if test="searchCondition == 2 and searchKeyword !='' and searchCondition != null">
+										 				AND p.price LIKE '%${searchKeyword}%' 
+													</if>
+	 												<if test="menu == 'search' and menu !='' ">
+														AND p.flag = 0 
+													</if>
+												</where>										
+											ORDER BY t.tran_status_code ) search_data
+						WHERE ROWNUM &lt;= #{endRowNum} )
+		WHERE no BETWEEN #{startRowNum} AND #{endRowNum}	
+	</select>
+	
+	<select id="getTotalCount" parameterType="search" resultType="int">
+		SELECT COUNT(*)
+		FROM(	SELECT prod_no
+						FROM PRODUCT
+						
+							<where>
+								<if test="searchCondition == 0 and searchKeyword !='' and searchCondition != null">
+					 				prod_no LIKE '%${searchKeyword}%' 
+								</if>
+								<if test="searchCondition == 1 and searchKeyword !='' and searchCondition != null">
+					 				AND prod_name LIKE '%${searchKeyword}%' 
+								</if>
+								<if test="searchCondition == 2 and searchKeyword !='' and searchCondition != null">
+					 				AND price LIKE '%${searchKeyword}%' 
+								</if>
+								<if test="menu == 'search' and menu !='' ">
+									AND flag = 0 
+								</if>
+							</where>
+						 ) countTable
+	</select>
+	
+	<update id="updateProduct" parameterType="product" >
+		UPDATE PRODUCT
+		<set> 
+			prod_name = #{prodName} , 
+			prod_detail = #{prodDetail:VARCHAR} ,
+			manufacture_day = #{manuDate} ,
+			price = #{price} ,
+			image_file = #{fileName:VARCHAR}
+		</set> 
+		WHERE prod_no = #{prodNo}
+	</update>
+	    
+	<insert id="addProduct" parameterType="product" >
+		INSERT INTO PRODUCT 
+		VALUES(seq_product_prod_no.nextval,#{prodName},#{prodDetail},#{manuDate},#{price},#{fileName},SYSDATE,0)
+	</insert>
+	
+	<select id="getCartList" parameterType="java.lang.String" resultMap="productSelectMap">
+		SELECT prod_no,prod_name,price,manufacture_day,prod_detail,reg_date,image_file,flag 
+		FROM PRODUCT 
+		WHERE prod_no IN (${value})
+	</select>
+	
+	<select id="getCartCount" parameterType="java.lang.String" resultType="int">
+		SELECT COUNT(*)
+		FROM (  SELECT prod_no 
+				FROM PRODUCT 
+				WHERE prod_no IN (${value})
+			 ) 
+	</select>
+	 
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

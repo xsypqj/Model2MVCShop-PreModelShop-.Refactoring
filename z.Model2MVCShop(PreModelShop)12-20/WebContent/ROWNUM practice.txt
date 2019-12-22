@@ -1,0 +1,121 @@
+
+<< ROWNUM 예제 >>
+
+SELECT 
+ROWNUM 순번, id, salary
+FROM emp_test;
+
+SELECT 
+ROWNUM 순번, id, salary
+FROM emp_test
+ORDER BY salary ASC;
+
+SELECT 
+ROWNUM 순번, id, salary
+FROM emp_test
+WHERE salary BETWEEN 1111 AND 7777;
+
+SELECT 
+ROWNUM 순번, id, salary
+FROM emp_test
+WHERE salary BETWEEN 1111 AND 7777
+	AND ROWNUM<=3;
+
+SELECT 
+ROWNUM 순번, id, salary
+FROM emp_test
+WHERE salary BETWEEN 1111 AND 7777
+	AND ROWNUM>=3;
+
+SELECT 
+ROWNUM 순번, id, salary
+FROM emp_test
+WHERE salary BETWEEN 1111 AND 7777
+	AND ROWNUM=3;
+
+< ROWNUM,ORDER BY 실행 순서테스트 >
+
+SELECT
+id, name, salary
+FROM emp_test
+ORDER BY salary DESC NULLS LAST;
+
+SELECT 
+ROWNUM, id, name, salary
+FROM emp_test
+ORDER BY salary DESC NULLS LAST;
+
+SELECT
+ROWNUM, id, name, salary
+FROM emp_test
+WHERE ROWNUM <=7
+ORDER BY salary DESC NULLS LAST;
+
+< SubQuery 사용 / inline View 사용 >
+
+SELECT 
+ROWNUM, vt.rnum, vt.id, vt.name, vt.salary
+FROM (	SELECT
+	ROWNUM rnum, id, name, salary
+	FROM emp_test
+	WHERE ROWNUM <=7
+	ORDER BY salary DESC NULLS LAST ) vt
+WHERE ROWNUM <=7;
+
+SELECT 
+ROWNUM, vt.rnum, vt.id, vt.name, vt.salary
+FROM (	SELECT
+	ROWNUM rnum, id, name, salary
+	FROM emp_test
+	WHERE ROWNUM <=7
+	ORDER BY salary DESC NULLS LAST ) vt
+WHERE ROWNUM >7;
+
+SELECT
+vt1.rrnum, vt1.rnum, vt1.id, vt1.name, vt1.salary
+FROM ( SELECT
+	ROWNUM rrnum, vt.rnum, vt.id, vt.name, vt.salary
+	FROM ( SELECT
+		ROWNUM rnum, id, name, salary
+		FROM emp_test
+		ORDER BY salary DESC NULLS LAST ) vt ) vt1
+WHERE vt1.rrnum>7;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
